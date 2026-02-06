@@ -38,11 +38,21 @@ def process_loss_parameters(profile):
         
     Returns:
     --------
-    list
-        Formatted parameters ready for P1812.bt_loss()
+    tuple
+        (parameters_list, tx_id) where parameters_list is ready for P1812.bt_loss()
+        and tx_id tracks which transmitter generated this profile
     """
     parameters = [ast.literal_eval(parameter) for parameter in profile[0:15]]
-    return [
+    
+    # Extract tx_id if present (column 16 in CSV, index 15)
+    tx_id = None
+    if len(profile) > 15:
+        try:
+            tx_id = profile[15]
+        except (IndexError, ValueError):
+            tx_id = None
+    
+    params_list = [
         float(parameters[0]),   # f (frequency)
         float(parameters[1]),   # p (time percentage)
         np.array([float(value) for value in parameters[2]]),  # d (distances)
@@ -58,3 +68,5 @@ def process_loss_parameters(profile):
         float(parameters[12]),  # lam_t (TX longitude)
         float(parameters[13]),  # lam_r (RX longitude)
     ]
+    
+    return params_list, tx_id
