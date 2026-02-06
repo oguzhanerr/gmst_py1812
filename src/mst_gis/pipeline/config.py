@@ -16,46 +16,23 @@ import yaml
 from mst_gis.utils.validation import ValidationError, validate_config as validate_config_dict
 
 
-# Default configuration
-DEFAULT_CONFIG: Dict[str, Any] = {
-    'TRANSMITTER': {
-        'tx_id': 'TX_0001',
-        'longitude': -13.40694,
-        'latitude': 9.345,
-        'antenna_height_tx': 57,
-        'antenna_height_rx': 10,
-    },
-    'P1812': {
-        'frequency_ghz': 0.9,
-        'time_percentage': 50,
-        'polarization': 1,  # 1=horizontal, 2=vertical
-    },
-    'RECEIVER_GENERATION': {
-        'max_distance_km': 11,
-        'azimuth_step': 10,  # degrees
-        'distance_step': 0.03,  # km (30 meters)
-        'sampling_resolution': 30,  # meters
-    },
-    'SENTINEL_HUB': {
-        'buffer_m': 11000,  # meters around transmitter
-        'chip_px': 734,  # pixel size
-        'year': 2020,
-    },
-    'LCM10_TO_CT': {
-        # Land cover class mapping to Ct (land cover category)
-        100: 1, 80: 2, 30: 2, 40: 2, 70: 2, 110: 2, 254: 2,  # Water, Urban, Herbaceous, etc → 1-2
-        20: 3, 50: 3,  # Shrubland → 3
-        10: 4, 60: 4, 90: 4,  # Forest, Herbs, Tree → 4
-    },
-    'CT_TO_R': {
-        # Resistance mapping by land cover category
-        1: 0,     # Class 1: 0 ohms
-        2: 0,     # Class 2: 0 ohms
-        3: 10,    # Class 3: 10 ohms
-        4: 15,    # Class 4: 15 ohms
-        5: 20,    # Class 5: 20 ohms
-    },
-}
+class ConfigError(Exception):
+    """Custom exception for configuration errors."""
+    pass
+
+
+# Load default configuration from config_example.json (single source of truth)
+# This is loaded as a fallback if no config file is provided
+def _load_default_config() -> Dict[str, Any]:
+    """Load default configuration from config_example.json."""
+    config_path = Path(__file__).parent.parent.parent / 'config_example.json'
+    if config_path.exists():
+        with open(config_path) as f:
+            return json.load(f)
+    # Fallback if config_example.json not found (should not happen)
+    raise ConfigError(f"Default config file not found: {config_path}")
+
+DEFAULT_CONFIG: Dict[str, Any] = _load_default_config()
 
 
 class ConfigManager:
@@ -141,11 +118,6 @@ class ConfigManager:
     def from_defaults(cls) -> 'ConfigManager':
         """Create config from defaults."""
         return cls()
-
-
-class ConfigError(Exception):
-    """Custom exception for configuration errors."""
-    pass
 
 
 def get_transmitter_info(config: Dict[str, Any]) -> Dict[str, Any]:
