@@ -164,13 +164,25 @@ class PipelineOrchestrator:
         sentinel_config = self.config['SENTINEL_HUB']
         transmitter_config = self.config['TRANSMITTER']
         
+        # Load credentials from config_sentinel_hub.py if empty in config.json
+        client_id = sentinel_config.get('client_id', '')
+        client_secret = sentinel_config.get('client_secret', '')
+        
+        if not client_id or not client_secret:
+            try:
+                from config_sentinel_hub import SH_CLIENT_ID, SH_CLIENT_SECRET
+                client_id = SH_CLIENT_ID
+                client_secret = SH_CLIENT_SECRET
+            except ImportError:
+                pass
+        
         try:
             lc_path = prepare_landcover(
                 lat=transmitter_config['latitude'],
                 lon=transmitter_config['longitude'],
                 cache_dir=landcover_cache_dir,
-                client_id=sentinel_config['client_id'],
-                client_secret=sentinel_config['client_secret'],
+                client_id=client_id,
+                client_secret=client_secret,
                 token_url=sentinel_config['token_url'],
                 process_url=sentinel_config['process_url'],
                 collection_id=sentinel_config['collection_id'],

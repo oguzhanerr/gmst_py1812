@@ -172,8 +172,9 @@ class SentinelHubClient:
         response.raise_for_status()
         
         # Parse GeoTIFF from response
-        with rasterio.open(rasterio.MemoryFile(response.content).open()) as src:
-            array = src.read(1)
+        with rasterio.MemoryFile(response.content) as memfile:
+            with memfile.open() as src:
+                array = src.read(1)
         
         if self.verbose:
             print(f"✓ Got landcover array: {array.shape}, min={array.min()}, max={array.max()}")
