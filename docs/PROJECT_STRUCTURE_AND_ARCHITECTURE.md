@@ -77,8 +77,8 @@ The Py1812 library requires ITU digital products (not redistributable). Before f
 ## Directory Structure
 
 ```
-mst_gis/
-├── src/mst_gis/                 # Library code (Python packages)
+gmst_py1812/
+├── src/gmst_py1812/                 # Library code (Python packages)
 │   ├── __init__.py
 │   ├── propagation/             # P1812 propagation logic
 │   │   ├── __init__.py
@@ -149,7 +149,7 @@ data/notebooks/mobile_get_input.ipynb
     ├─ Generates: rx_rings_*.csv → data/intermediate/workflow/
     └─ Outputs: paths_oneTx_manyRx_*.csv → data/input/profiles/
     ↓ INPUT TO
-src/mst_gis/propagation/batch_processor.py
+src/gmst_py1812/propagation/batch_processor.py
     ├─ Reads: paths_oneTx_manyRx_*.csv (data/input/profiles/)
     └─ Outputs: *.geojson → data/output/geojson/
     ↓ INPUT TO
@@ -229,23 +229,23 @@ data/notebooks/read_geojson.ipynb
 
 ### Source Modules
 
-**`src/mst_gis/propagation/batch_processor.py`**
+**`src/gmst_py1812/propagation/batch_processor.py`**
 - Core batch processing logic
 - Function: `main(profiles_dir=None, output_dir=None)`
 - Smart path handling for default input/output directories
 - Integrates with Py1812 propagation model
 
-**`src/mst_gis/propagation/profile_parser.py`**
+**`src/gmst_py1812/propagation/profile_parser.py`**
 - CSV profile parsing
 - Function: `load_profiles(profiles_dir)` - Loads all CSV profiles
 - Function: `process_loss_parameters(profile)` - Processes profile data
 
-**`src/mst_gis/propagation/point_generator.py`**
+**`src/gmst_py1812/propagation/point_generator.py`**
 - Phyllotaxis point generation
 - Function: `generate_phyllotaxis(lat0, lon0, num_points, scale=1.0)`
 - Generates uniformly distributed points in a circular pattern
 
-**`src/mst_gis/gis/geojson_builder.py`**
+**`src/gmst_py1812/gis/geojson_builder.py`**
 - GeoJSON generation utilities
 - Functions for creating points, lines, and polygons
 - Outputs valid GeoJSON FeatureCollections
@@ -345,7 +345,7 @@ Input terrain profiles use semicolon-separated CSV format:
 Entry point scripts add `src/` to Python path:
 ```python
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-from mst_gis.propagation import batch_process
+from gmst_py1812.propagation import batch_process
 ```
 
 ### Path Handling

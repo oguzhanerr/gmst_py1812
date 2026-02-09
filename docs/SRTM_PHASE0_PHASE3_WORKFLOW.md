@@ -27,7 +27,7 @@ Phase 3 (Data Extraction)
   • Time: 30-45s for first tile, <1ms thereafter
   ↓
 Cache
-  Location: /Users/oz/Documents/mst_gis/data/intermediate/elevation_cache/
+  Location: /Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache/
   Stored: HGT files (binary SRTM format, ~2.8MB each)
 ```
 
@@ -41,7 +41,7 @@ init_start = time.time()
 
 try:
     # Set SRTM cache to project directory
-    from mst_gis.propagation.profile_extraction import set_srtm_cache_dir, _get_srtm_data
+    from gmst_py1812.propagation.profile_extraction import set_srtm_cache_dir, _get_srtm_data
     srtm_cache = project_root / "data" / "intermediate" / "elevation_cache"
     set_srtm_cache_dir(str(srtm_cache))
     
@@ -83,7 +83,7 @@ Test results with Phase 0 + Phase 3:
 ```
 Phase 0 initialization: ✓ 0.00s (handler initialized)
 Phase 3 extraction: ✓ 0.17s (tile cached from earlier run)
-Cache directory: ✓ /Users/oz/Documents/mst_gis/data/intermediate/elevation_cache
+Cache directory: ✓ /Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache
 Cached tiles: ✓ 1 tile (N09W014.hgt, 2.8MB)
 Heights extracted: ✓ 8-16m (valid, no negatives)
 ```
@@ -105,10 +105,10 @@ If you call `generate_profile_points()` from non-notebook code:
 import sys
 sys.path.insert(0, 'src')
 from pathlib import Path
-from mst_gis.propagation.profile_extraction import set_srtm_cache_dir, generate_profile_points
+from gmst_py1812.propagation.profile_extraction import set_srtm_cache_dir, generate_profile_points
 
 # Set custom cache (optional, defaults to ~/.cache/srtm/)
-project_root = Path('/Users/oz/Documents/mst_gis')
+project_root = Path('/Users/oz/Documents/gmst_py1812')
 cache = project_root / 'data' / 'intermediate' / 'elevation_cache'
 set_srtm_cache_dir(str(cache))
 
@@ -129,7 +129,7 @@ SRTM data is available 60°N to 56°S. Outside this range, elevation falls back 
 
 ### How to force re-download
 ```bash
-rm /Users/oz/Documents/mst_gis/data/intermediate/elevation_cache/*.hgt
+rm /Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache/*.hgt
 ```
 
 ## Next Steps

@@ -4,7 +4,7 @@
 All pipeline configuration is now centralized in a **single file**: `config_example.json`
 
 This file is used by:
-- ✅ Python modules (via `src/mst_gis/pipeline/config.py`)
+- ✅ Python modules (via `src/gmst_py1812/pipeline/config.py`)
 - ✅ All CLI scripts (production pipeline)
 - ⏳ Phase 0 notebook (to be updated - currently still has hardcoded CONFIG)
 
@@ -151,7 +151,7 @@ python scripts/run_full_pipeline.py --config config_senegal_case2.json
 ## Technical Details
 
 ### How Python Modules Load Config
-**File**: `src/mst_gis/pipeline/config.py`
+**File**: `src/gmst_py1812/pipeline/config.py`
 
 ```python
 def _load_default_config() -> Dict[str, Any]:
@@ -214,7 +214,7 @@ If validation fails, you'll get a clear error message indicating what's wrong.
 
 | What | Where | Loads From | Status |
 |------|-------|-----------|--------|
-| Python Scripts | `src/mst_gis/pipeline/config.py` | `config_example.json` | ✅ Done |
+| Python Scripts | `src/gmst_py1812/pipeline/config.py` | `config_example.json` | ✅ Done |
 | Phase 0-5 Notebooks | `notebooks/phase0_setup.ipynb` | Hardcoded CONFIG dict | ⏳ TODO |
 
 **Next**: Update Phase 0 notebook to load from `config_example.json` instead of hardcoded CONFIG

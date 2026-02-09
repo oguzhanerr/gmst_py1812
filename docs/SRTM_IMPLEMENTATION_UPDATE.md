@@ -15,7 +15,7 @@ SRTM.py is now fully integrated and automatically downloading elevation tiles as
 
 SRTM tiles are cached in: `data/intermediate/elevation_cache/` (project directory)
 
-Default: `/Users/oz/Documents/mst_gis/data/intermediate/elevation_cache/`
+Default: `/Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache/`
 
 Current cached tiles:
 - `N09W014.hgt` - For your transmitter area (West Africa, 9°N, 14°W)
@@ -27,7 +27,7 @@ Each tile is ~2.8MB and represents a 1°×1° area in SRTM1 30m resolution.
 ## Integration Details
 
 ### Module-Level Functions
-Added to `src/mst_gis/propagation/profile_extraction.py`:
+Added to `src/gmst_py1812/propagation/profile_extraction.py`:
 
 ```python
 def set_srtm_cache_dir(cache_dir: str):

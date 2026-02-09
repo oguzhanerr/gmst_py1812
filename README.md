@@ -1,162 +1,149 @@
-# MST GIS - Radio Propagation Prediction Pipeline
+# GMST-Py1812: ITU-R P.1812-6 Radio Propagation Pipeline
 
-**Production-ready Python pipeline for ITU-R P.1812-6 radio propagation analysis with 5-8x performance optimization.**
+Radio propagation prediction using ITU-R P.1812-6 for terrestrial point-to-area services (30 MHz to 6 GHz). Processes terrain profiles to calculate basic transmission loss and electric field strength.
 
-## Overview
-
-This project implements a complete workflow for radio propagation prediction using the ITU-R P.1812-6 recommendation for point-to-area terrestrial services (30 MHz to 6 GHz). It processes terrain path profiles to calculate basic transmission loss and electric field strength, with results exportable as GeoJSON for GIS visualization or as CSV profiles for direct P.1812 analysis.
-
-### Key Capabilities
-
-- **Full automation:** 5-phase pipeline from configuration to CSV export
-- **Optimization A:** 5-8x performance speedup via pre-loaded raster arrays and vectorized operations
-- **CLI + Python API:** Command-line interface and programmatic Python access
-- **100% type-hinted:** Complete type annotations throughout
-- **Production-ready:** Comprehensive error handling, validation, and logging
-- **Well-documented:** Usage guides, API reference, and architecture documentation
+**Full documentation**: See [DOCUMENTATION.md](DOCUMENTATION.md)
 
 ## Quick Start
 
-### Installation
-
+### Setup
 ```bash
-# Clone repository and setup virtual environment
-git clone <repo-url>
-cd mst_gis
+# Create and activate virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Install Py1812 library from local source
-pip install -e ./github_Py1812/Py1812
+# Install Py1812 from local source (required)
+pip install -e ./Py1812_lib
 ```
 
-### Setup Credentials
+### Configure
+1. Copy `config_example.json` to `config.json`
+2. Edit `config.json` with your transmitter location, frequency, and antenna parameters
+3. Create `config_sentinel_hub.py` with your Sentinel Hub credentials (see DOCUMENTATION.md for details)
 
+### Run Full Pipeline
+```python
+from pathlib import Path
+from pipeline.orchestration import PipelineOrchestrator
+from propagation.propagation_calculator import main
+
+# Run phases 0-4
+orchestrator = PipelineOrchestrator(config_path="config.json")
+orchestrator.run_all_phases(Path.cwd())
+
+# Run phase 5 (P.1812 calculations)
+results_path = main(
+    profiles_dir=Path.cwd() / "data" / "output",
+    output_dir=Path.cwd() / "data" / "output"
+)
+print(f"Results: {results_path}")
+```
+
+Or run the end-to-end test:
 ```bash
-# Option 1: Edit config file
-cp config_sentinel_hub.py.example config_sentinel_hub.py
-# Then add your Sentinel Hub credentials from https://dataspace.copernicus.eu/
-
-# Option 2: Use environment variables
-export SH_CLIENT_ID='your-client-id'
-export SH_CLIENT_SECRET='your-client-secret'
+python scripts/test_full_pipeline_e2e.py
 ```
 
-### Run Pipeline
+## What It Does
 
-```bash
-# Execute full pipeline (phases 0-4)
-python scripts/run_full_pipeline.py
+**5-Phase Pipeline**:
+- **Phase 0**: Setup directories, validate config, cache SRTM elevation data
+- **Phase 1**: Download landcover from Sentinel Hub with caching
+- **Phase 2**: Generate receiver points at multiple distances/azimuths
+- **Phase 3**: Extract elevation, landcover, radio-climatic zones (batch optimized)
+- **Phase 4**: Format terrain profiles for P.1812 calculations
+- **Phase 5**: Run P.1812 propagation model, export results
 
-# With custom configuration
-python scripts/run_full_pipeline.py --config my_config.json
+**Outputs**:
+- CSV files: `results_TX_XXXX_*.csv` with transmission loss and field strength
+- Optional: GeoJSON for GIS visualization
 
-# Skip Phase 1 (land cover download) if already cached
-python scripts/run_full_pipeline.py --skip-phase1
-```
-
-### Check Output
-
-```bash
-# CSV profiles for P.1812 processing
-ls data/input/profiles/*.csv
-
-# Intermediate GeoJSON (if generated)
-ls data/output/geojson/*.geojson
-```
-
-## Pipeline Architecture
-
-### 5-Phase Workflow
-
-| Phase | Name | Duration | Input | Output |
-|-------|------|----------|-------|--------|
-| **0** | Setup | <1s | Config JSON | Directories, validated config |
-| **1** | Data Prep | 30-60s | Transmitter location | Land cover GeoTIFF cache |
-| **2** | Point Generation | ~5s | TX location, distance/azimuth params | 13k receiver points |
-| **3** | Data Extraction | ~15s | DEM, landcover, zone data | Enriched GeoDataFrame |
-| **4** | Formatting | <1s | Enriched points | P.1812-6 CSV profiles |
-| | **TOTAL** | **~50-80s** | | **Ready for P.1812** |
-
-### Data Flow
+## Directory Structure
 
 ```
-config.json
-    ↓
-Phase 0: Setup (directories, validation)
-    ↓
-Phase 1: Land Cover Download (Sentinel Hub → cached GeoTIFF)
-    ↓
-Phase 2: Point Generation (generate ~13k receiver points)
-    ↓
-Phase 3: Data Extraction (elevation, landcover, zones) ← Optimization A
-    ↓
-Phase 4: Format & Export (→ CSV profiles for P.1812)
-    ↓
-data/input/profiles/*.csv (P.1812 analysis ready)
-```
-
-### Directory Structure
-
-```
-mst_gis/
-├── src/mst_gis/                # Production source code
-│   ├── pipeline/               # 5 phase modules + orchestration
-│   │   ├── config.py           # Configuration management
-│   │   ├── data_preparation.py # Phase 1: Land cover download
-│   │   ├── point_generation.py # Phase 2: Batch point generation
-│   │   ├── data_extraction.py  # Phase 3: Data extraction + Optimization A
-│   │   ├── formatting.py       # Phase 4: CSV export
-│   │   └── orchestration.py    # Pipeline orchestration
-│   └── utils/                  # Shared utilities
-│       ├── logging.py          # Progress tracking & timing
-│       └── validation.py       # Data validation
-│
-├── scripts/                    # CLI entry points
-│   ├── run_full_pipeline.py   # Run all phases
-│   ├── run_phase0_setup.py    # Setup only
-│   └── run_phase1_dataprep.py # Land cover download only
-│
-├── data/                       # Data directories
+gmst_py1812/
+├── src/
+│   ├── pipeline/          # Phases 0-4
+│   ├── propagation/       # Phase 5 (P.1812)
+│   └── utils/             # Logging, validation
+├── Py1812_lib/            # ITU-R P.1812-6 implementation
+├── data/
 │   ├── input/
-│   │   ├── profiles/          # Input: CSV terrain profiles
-│   │   └── reference/         # Static reference data
-│   ├── intermediate/
-│   │   └── api_data/          # Cached Sentinel Hub TIFFs
-│   └── output/
-│       ├── geojson/           # GeoJSON outputs
-│       └── spreadsheets/      # CSV/Excel outputs
-│
-├── notebooks/                  # Jupyter notebooks (for reference)
-│   ├── phase0_setup.ipynb
-│   ├── mobile_get_input_phase1.ipynb
-│   ├── mobile_get_input_phase2.ipynb
-│   ├── mobile_get_input_phase3.ipynb
-│   └── mobile_get_input_phase4.ipynb
-│
-├── github_Py1812/             # ITU-R P.1812-6 implementation
-│   └── Py1812/
-│       ├── src/Py1812/
-│       │   └── P1812.py       # Main propagation model (bt_loss function)
-│       └── tests/
-│
-├── requirements.txt           # Python dependencies
-├── config_sentinel_hub.py     # Sentinel Hub credentials (DO NOT COMMIT)
-├── config_sentinel_hub.py.example  # Template for config
-├── README.md                  # This file
-├── PIPELINE.md                # Complete pipeline user guide
-├── QUICKSTART.md              # Installation & basic usage
-├── FINAL_STRUCTURE.md         # Repository organization
-├── WEEK3_SUMMARY.md           # Project development summary
-└── docs/                      # Additional documentation
-    ├── API_REFERENCE.md       # Python API documentation
-    ├── NOTEBOOK_VERSIONS_GUIDE.md
-    ├── IMPLEMENTATION_ROADMAP.md
-    └── ARCHIVED_DOCS/         # Reference materials
+│   ├── output/
+│   ├── landcover/         # Cached Sentinel Hub GeoTIFFs
+│   └── srtm/              # Cached elevation tiles
+├── scripts/               # Entry points
+├── config_example.json    # Configuration template
+└── DOCUMENTATION.md       # Full API reference
 ```
+
+## Configuration
+
+Edit `config.json` (copy from `config_example.json`):
+
+```json
+{
+  "TRANSMITTER": {
+    "tx_id": "TX_0001",
+    "latitude": 9.0,
+    "longitude": -14.0,
+    "antenna_height_tx": 50,
+    "antenna_height_rx": 1.5
+  },
+  "P1812": {
+    "frequency_ghz": 0.8,
+    "time_percentage": 50,
+    "polarization": 1
+  },
+  "RECEIVER_GENERATION": {
+    "max_distance_km": 11.0,
+    "azimuth_step": 10,
+    "distance_step": 0.03,
+    "sampling_resolution": 30
+  },
+  "SENTINEL_HUB": {
+    "client_id": "...",
+    "client_secret": "...",
+    "collection_id": "...",
+    "year": 2020,
+    "buffer_m": 11000,
+    "chip_px": 734
+  }
+}
+```
+
+## Sentinel Hub Credentials
+
+1. Get credentials from Copernicus Data Space
+2. Create `config_sentinel_hub.py` in project root:
+
+```python
+SH_CLIENT_ID = "your_id"
+SH_CLIENT_SECRET = "your_secret"
+TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
+PROCESS_URL = "https://sh.dataspace.copernicus.eu/api/v1/process"
+COLLECTION_ID = "your_collection_id"
+```
+
+Or set environment variables: `SH_CLIENT_ID`, `SH_CLIENT_SECRET`
+
+## Performance
+
+- Full pipeline: ~1-2 minutes
+- SRTM/landcover cached automatically after first run
+- Phase 3 optimized with 5-8x speedup via pre-loaded rasters
+
+## References
+
+- [ITU-R P.1812-6](https://www.itu.int/rec/R-REC-P.1812-6/)
+- [ESA WorldCover](https://worldcover.org/)
+- [SRTM Elevation Data](https://earthexplorer.usgs.gov/)
+- [Sentinel Hub](https://www.sentinel-hub.com/)
+
+See [DOCUMENTATION.md](DOCUMENTATION.md) for full API reference and troubleshooting.
 
 ## Usage Guide
 
@@ -199,7 +186,7 @@ python scripts/run_phase1_dataprep.py --config config.json --force-download
 #### Run Full Pipeline
 
 ```python
-from mst_gis.pipeline.orchestration import run_pipeline
+from gmst_py1812.pipeline.orchestration import run_pipeline
 
 # Execute all phases with default config
 result = run_pipeline()
@@ -219,7 +206,7 @@ print(result['phase_times'])     # Individual phase times
 #### Use Individual Phases
 
 ```python
-from mst_gis.pipeline.orchestration import PipelineOrchestrator
+from gmst_py1812.pipeline.orchestration import PipelineOrchestrator
 
 # Initialize orchestrator
 orchestrator = PipelineOrchestrator(config_path='config.json')
@@ -236,7 +223,7 @@ df_profiles, csv_path = orchestrator.run_phase4_export(output_path=None)
 
 ```python
 # Phase 2: Generate receiver points
-from mst_gis.pipeline.point_generation import generate_receiver_grid, Transmitter
+from gmst_py1812.pipeline.point_generation import generate_receiver_grid, Transmitter
 
 transmitter = Transmitter(
     tx_id='TX_0001',
@@ -258,7 +245,7 @@ print(f"Generated {len(receivers_gdf)} receiver points")
 #### Data Extraction with Optimization A
 
 ```python
-from mst_gis.pipeline.data_extraction import extract_data_for_receivers
+from gmst_py1812.pipeline.data_extraction import extract_data_for_receivers
 
 # Pre-loads raster arrays once, then vectorizes extraction (5-8x speedup)
 enriched_gdf = extract_data_for_receivers(
@@ -316,7 +303,7 @@ enriched_gdf = extract_data_for_receivers(
 #### Load from JSON/YAML
 
 ```python
-from mst_gis.pipeline.config import ConfigManager
+from gmst_py1812.pipeline.config import ConfigManager
 
 # Load and validate configuration
 config_manager = ConfigManager()

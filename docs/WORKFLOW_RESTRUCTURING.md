@@ -246,7 +246,7 @@ from dataclasses import dataclass
 project_root = Path.cwd() if (Path.cwd() / 'src').exists() else Path.cwd().parent
 sys.path.insert(0, str(project_root))
 
-from mst_gis.propagation.profile_extraction import (
+from gmst_py1812.propagation.profile_extraction import (
     prepare_data,
     generate_all_receiver_points,
     extract_data_for_points,

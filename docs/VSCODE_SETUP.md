@@ -7,7 +7,7 @@ This guide shows how to set up and test MST-GIS in VSCode on macOS.
 ## Quick Start
 
 ```bash
-cd /Users/oz/Documents/mst_gis
+cd /Users/oz/Documents/gmst_py1812
 python3 -m venv .venv
 source .venv/bin/activate
 
@@ -21,7 +21,7 @@ pip install -r requirements.txt
 pip install ./github_Py1812/Py1812
 
 # Install Jupyter kernel
-python -m ipykernel install --user --name mst_gis
+python -m ipykernel install --user --name gmst_py1812
 ```
 
 Then open VSCode and select the `.venv` interpreter.
@@ -35,7 +35,7 @@ Then open VSCode and select the `.venv` interpreter.
 ### Step 1: Create Python Virtual Environment
 
 ```bash
-cd /Users/oz/Documents/mst_gis
+cd /Users/oz/Documents/gmst_py1812
 python3 -m venv .venv
 ```
 
@@ -107,7 +107,7 @@ python scripts/generate_receiver_points.py 0 0 5 --geojson --output /tmp/test.ge
 
 - Press: `Cmd+Shift+P`
 - Type: `Python: Select Interpreter`
-- Choose: `./mst_gis/.venv/bin/python`
+- Choose: `./gmst_py1812/.venv/bin/python`
 
 Or click the Python version in bottom-right corner of VSCode.
 
@@ -116,7 +116,7 @@ Or click the Python version in bottom-right corner of VSCode.
 After activating `.venv`:
 
 ```bash
-python -m ipykernel install --user --name mst_gis
+python -m ipykernel install --user --name gmst_py1812
 ```
 
 This makes the kernel available in VSCode's notebook interface.
@@ -134,7 +134,7 @@ Create `.vscode/settings.json` in project root:
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "ms-python.python"
   },
-  "jupyter.kernels.preferred": "mst_gis"
+  "jupyter.kernels.preferred": "gmst_py1812"
 }
 ```
 
@@ -149,7 +149,7 @@ Create `tests/test_basic.py`:
 ```python
 """Test basic module imports and functionality."""
 
-from mst_gis.propagation.point_generator import generate_phyllotaxis
+from gmst_py1812.propagation.point_generator import generate_phyllotaxis
 
 # Generate 5 test points
 points = generate_phyllotaxis(0, 0, 5, scale=1000)
@@ -183,7 +183,7 @@ python scripts/generate_receiver_points.py 0 0 10 --geojson --output /tmp/points
 1. File → Open File
 2. Select `data/notebooks/read_geojson.ipynb`
 3. VSCode should ask to select kernel
-4. Choose: `mst_gis (.venv)`
+4. Choose: `gmst_py1812 (.venv)`
 5. Run cells one by one (click play icon)
 
 ---
@@ -196,7 +196,7 @@ Recommended folder view:
 MST-GIS (root)
 ├── 📁 .venv/              (virtual environment - ignore)
 ├── 📁 src/
-│   └── 📁 mst_gis/        (main code)
+│   └── 📁 gmst_py1812/        (main code)
 ├── 📁 data/               (all data files)
 ├── 📁 scripts/            (entry points)
 ├── 📁 tests/              (unit tests)
@@ -233,19 +233,19 @@ To hide `.venv` from explorer, add to `.vscode/settings.json`:
 **Solution**:
 1. Make sure `.venv` is activated: `source .venv/bin/activate`
 2. Check interpreter is selected: `Cmd+Shift+P` → `Python: Select Interpreter`
-3. Choose `./mst_gis/.venv/bin/python`
+3. Choose `./gmst_py1812/.venv/bin/python`
 
 ### Issue: Jupyter kernel not appearing
 
 **Solution**:
 ```bash
 # Install kernel
-python -m ipykernel install --user --name mst_gis
+python -m ipykernel install --user --name gmst_py1812
 
 # List kernels to verify
 jupyter kernelspec list
 
-# Should show: mst_gis  ~/.../mst_gis
+# Should show: gmst_py1812  ~/.../gmst_py1812
 ```
 
 ### Issue: "Py1812 module not found"
@@ -265,7 +265,7 @@ python -c "import Py1812; print('OK')"
 ```bash
 # Check if .venv is activated
 which python
-# Should show: /Users/oz/Documents/mst_gis/.venv/bin/python
+# Should show: /Users/oz/Documents/gmst_py1812/.venv/bin/python
 
 # If not, activate:
 source .venv/bin/activate
@@ -281,7 +281,7 @@ pip install numpy geojson
 ### 1. Start Your Day
 
 ```bash
-cd /Users/oz/Documents/mst_gis
+cd /Users/oz/Documents/gmst_py1812
 source .venv/bin/activate
 code .
 ```
@@ -350,8 +350,8 @@ ls -la data/input/profiles/
    - `TESTING_REPORT.md` - Test results
 
 4. **Explore code**:
-   - `src/mst_gis/propagation/point_generator.py` - Simple module to start
-   - `src/mst_gis/propagation/batch_processor.py` - Main processing logic
+   - `src/gmst_py1812/propagation/point_generator.py` - Simple module to start
+   - `src/gmst_py1812/propagation/batch_processor.py` - Main processing logic
    - `data/notebooks/` - Jupyter workflows
 
 ---
@@ -366,7 +366,7 @@ ls -la data/input/profiles/
 - [ ] Interpreter selected in VSCode
 - [ ] `python scripts/generate_receiver_points.py 0 0 5 --geojson --output /tmp/test.geojson` works
 - [ ] Notebooks can be opened in VSCode
-- [ ] Jupyter kernel `mst_gis` appears in notebook kernel selector
+- [ ] Jupyter kernel `gmst_py1812` appears in notebook kernel selector
 
 ---
 

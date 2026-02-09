@@ -4,7 +4,7 @@
 
 ### Run Full Pipeline
 ```python
-from mst_gis.pipeline.orchestration import run_pipeline
+from gmst_py1812.pipeline.orchestration import run_pipeline
 
 result = run_pipeline(
     config_path='config.json',
@@ -21,7 +21,7 @@ print(result['enriched_gdf'])  # Enriched GeoDataFrame
 
 ### Using PipelineOrchestrator
 ```python
-from mst_gis.pipeline.orchestration import PipelineOrchestrator
+from gmst_py1812.pipeline.orchestration import PipelineOrchestrator
 
 orchestrator = PipelineOrchestrator(config_path='config.json')
 
@@ -36,7 +36,7 @@ df_profiles, csv_path = orchestrator.run_phase4_export()
 ## Point Generation
 
 ```python
-from mst_gis.pipeline.point_generation import (
+from gmst_py1812.pipeline.point_generation import (
     generate_receiver_grid, 
     Transmitter
 )
@@ -64,7 +64,7 @@ receivers_gdf = generate_receiver_grid(
 ## Data Extraction
 
 ```python
-from mst_gis.pipeline.data_extraction import extract_data_for_receivers
+from gmst_py1812.pipeline.data_extraction import extract_data_for_receivers
 
 enriched_gdf = extract_data_for_receivers(
     receivers_gdf=receivers_gdf,
@@ -80,7 +80,7 @@ enriched_gdf = extract_data_for_receivers(
 ## Formatting & Export
 
 ```python
-from mst_gis.pipeline.formatting import format_and_export_profiles
+from gmst_py1812.pipeline.formatting import format_and_export_profiles
 
 df_profiles, csv_path = format_and_export_profiles(
     receivers_gdf=enriched_gdf,
@@ -97,7 +97,7 @@ df_profiles, csv_path = format_and_export_profiles(
 ## Configuration
 
 ```python
-from mst_gis.pipeline.config import ConfigManager
+from gmst_py1812.pipeline.config import ConfigManager
 
 config_mgr = ConfigManager()
 config_mgr.load('config.json')
@@ -115,7 +115,7 @@ config_mgr.save('new_config.json')
 
 ### Logging
 ```python
-from mst_gis.utils.logging import Timer, ProgressTracker, Logger
+from gmst_py1812.utils.logging import Timer, ProgressTracker, Logger
 
 # Timing
 with Timer("My operation"):
@@ -134,7 +134,7 @@ logger.error("Error message")
 
 ### Validation
 ```python
-from mst_gis.utils.validation import (
+from gmst_py1812.utils.validation import (
     ValidationError,
     validate_config,
     validate_receiver_points,
@@ -152,7 +152,7 @@ except ValidationError as e:
 ## Error Handling
 
 ```python
-from mst_gis.utils.validation import ValidationError
+from gmst_py1812.utils.validation import ValidationError
 
 try:
     result = run_pipeline(config_path='config.json')

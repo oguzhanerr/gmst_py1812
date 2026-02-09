@@ -17,12 +17,6 @@ build/
 *~
 .DS_Store
 
-# Data directories
-data/output/geojson/
-data/output/spreadsheets/
-data/intermediate/api_data/
-data/intermediate/workflow/
-
 # Logs
 *.log
 

@@ -5,7 +5,7 @@ After updating to SRTM.py for elevation extraction, you need to regenerate the p
 ## Quick Start
 
 ```bash
-cd /Users/oz/Documents/mst_gis
+cd /Users/oz/Documents/gmst_py1812
 source .venv/bin/activate
 
 # Regenerate profiles

@@ -50,7 +50,7 @@ python validateP1812.py
 ### Directory Structure
 ```
 .
-├── src/mst_gis/              # Main source code
+├── src/gmst_py1812/              # Main source code
 │   ├── propagation/          # P1812 propagation logic
 │   │   ├── profile_parser.py    (load/parse profiles)
 │   │   ├── batch_processor.py   (main workflow)
@@ -84,13 +84,13 @@ data/input/profiles/*.csv → scripts/run_batch_processor.py → Py1812.bt_loss(
 
 - **`scripts/run_batch_processor.py`** - Entry point. Reads semicolon-delimited CSV profiles from `data/input/profiles/`, calls P1812 propagation model, outputs GeoJSON files to `data/output/geojson/`
 
-- **`src/mst_gis/propagation/batch_processor.py`** - Core batch processing logic with smart path handling
+- **`src/gmst_py1812/propagation/batch_processor.py`** - Core batch processing logic with smart path handling
 
-- **`src/mst_gis/propagation/profile_parser.py`** - CSV profile parsing and loss parameter processing
+- **`src/gmst_py1812/propagation/profile_parser.py`** - CSV profile parsing and loss parameter processing
 
-- **`src/mst_gis/propagation/point_generator.py`** - Generates uniformly distributed receiver points using golden-angle phyllotaxis pattern
+- **`src/gmst_py1812/propagation/point_generator.py`** - Generates uniformly distributed receiver points using golden-angle phyllotaxis pattern
 
-- **`src/mst_gis/gis/geojson_builder.py`** - GeoJSON FeatureCollection generation for transmitter/receiver points, link lines, and coverage polygons
+- **`src/gmst_py1812/gis/geojson_builder.py`** - GeoJSON FeatureCollection generation for transmitter/receiver points, link lines, and coverage polygons
 
 - **`github_Py1812/Py1812/src/Py1812/P1812.py`** - Core propagation model implementing ITU-R P.1812-6. Main function is `bt_loss()` which returns:
   - `Lb`: Basic transmission loss (dB)

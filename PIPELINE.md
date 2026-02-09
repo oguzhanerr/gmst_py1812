@@ -42,7 +42,7 @@ python scripts/run_phase0_setup.py
 python scripts/run_phase1_dataprep.py --config config.json
 
 # Or access directly in Python
-from mst_gis.pipeline.orchestration import PipelineOrchestrator
+from gmst_py1812.pipeline.orchestration import PipelineOrchestrator
 
 orchestrator = PipelineOrchestrator(config_path='config.json')
 orchestrator.run_phase0_setup()
@@ -54,7 +54,7 @@ orchestrator.run_phase4_export()
 
 ## Configuration
 
-The pipeline is configured via `DEFAULT_CONFIG` in `src/mst_gis/pipeline/config.py` or a custom JSON/YAML file.
+The pipeline is configured via `DEFAULT_CONFIG` in `src/gmst_py1812/pipeline/config.py` or a custom JSON/YAML file.
 
 ### Configuration Structure
 
@@ -194,7 +194,7 @@ df_profiles, csv_path = orchestrator.run_phase4_export(output_path=None)
 ### Full Pipeline Execution
 
 ```python
-from mst_gis.pipeline.orchestration import run_pipeline
+from gmst_py1812.pipeline.orchestration import run_pipeline
 
 result = run_pipeline(
     config_path='config.json',
@@ -209,7 +209,7 @@ print(result['total_time'])  # Total execution time
 ### Individual Phases
 
 ```python
-from mst_gis.pipeline.orchestration import PipelineOrchestrator
+from gmst_py1812.pipeline.orchestration import PipelineOrchestrator
 
 orchestrator = PipelineOrchestrator(config_path='config.json')
 
@@ -224,7 +224,7 @@ df_profiles, csv_path = orchestrator.run_phase4_export()
 ### Direct Module Usage
 
 ```python
-from mst_gis.pipeline.point_generation import generate_receiver_grid, Transmitter
+from gmst_py1812.pipeline.point_generation import generate_receiver_grid, Transmitter
 
 transmitter = Transmitter(
     tx_id='TX_0001',
@@ -266,7 +266,7 @@ Options:
 python scripts/run_full_pipeline.py
 
 # Custom config and project root
-python scripts/run_full_pipeline.py --config config.json --project-root /data/mst_gis
+python scripts/run_full_pipeline.py --config config.json --project-root /data/gmst_py1812
 
 # Skip land cover download
 python scripts/run_full_pipeline.py --skip-phase1
@@ -312,7 +312,7 @@ project_root/
 │   ├── run_full_pipeline.py
 │   ├── run_phase0_setup.py
 │   └── run_phase1_dataprep.py
-└── src/mst_gis/
+└── src/gmst_py1812/
     ├── utils/
     │   ├── logging.py
     │   └── validation.py

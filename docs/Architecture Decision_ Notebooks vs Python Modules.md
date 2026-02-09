@@ -13,7 +13,7 @@ We have:
 ### Approach
 Create `.py` files that mirror notebook structure:
 ```warp-runnable-command
-src/mst_gis/pipeline/
+src/gmst_py1812/pipeline/
 ├── phase0_setup.py          # CONFIG, TX, elevation seed
 ├── phase1_data_prep.py      # Land cover download/cache
 ├── phase2_batch_points.py   # Generate all points
@@ -36,7 +36,7 @@ src/mst_gis/pipeline/
 ### Approach
 Create a true software library with clear abstractions:
 ```warp-runnable-command
-src/mst_gis/pipeline/
+src/gmst_py1812/pipeline/
 ├── __init__.py
 ├── config.py               # CONFIG management
 ├── data_preparation.py     # Data fetching/caching
@@ -75,7 +75,7 @@ Create BOTH:
     * Use command-line scripts for automation
 ### Structure
 ```warp-runnable-command
-src/mst_gis/
+src/gmst_py1812/
 ├── pipeline/              # PRODUCTION CODE
 │   ├── config.py
 │   ├── data_preparation.py

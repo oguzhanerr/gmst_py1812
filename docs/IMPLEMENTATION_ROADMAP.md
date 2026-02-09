@@ -48,7 +48,7 @@ This document provides a high-level overview of all planning and optimization wo
 5. Test and benchmark
 
 **Files to Modify**:
-- `src/mst_gis/propagation/profile_extraction.py`
+- `src/gmst_py1812/propagation/profile_extraction.py`
 - `data/notebooks/mobile_get_input_phase2.ipynb`
 
 **Documentation**: See `OPTIMIZATION.md` (lines 29-222)
@@ -72,7 +72,7 @@ This document provides a high-level overview of all planning and optimization wo
 3. Test and benchmark against per-azimuth approach
 
 **Files to Modify/Create**:
-- `src/mst_gis/propagation/profile_extraction.py` (add functions)
+- `src/gmst_py1812/propagation/profile_extraction.py` (add functions)
 - `data/notebooks/mobile_get_input_phase3.ipynb` (new notebook)
 
 **Documentation**: See `OPTIMIZATION.md` (lines 225-509)
@@ -116,7 +116,7 @@ Phase 4: Post-processing & Export
 5. Performance validation and documentation
 
 **Files to Modify/Create**:
-- `src/mst_gis/propagation/profile_extraction.py` (add 4 functions)
+- `src/gmst_py1812/propagation/profile_extraction.py` (add 4 functions)
 - `data/notebooks/mobile_get_input_restructured.ipynb` (new notebook)
 - `tests/` (unit tests)
 
@@ -168,7 +168,7 @@ If you want to rewrite from scratch:
 - `IMPLEMENTATION_ROADMAP.md` - This file
 
 ### Source Code
-- `src/mst_gis/propagation/profile_extraction.py` - Main module to extend
+- `src/gmst_py1812/propagation/profile_extraction.py` - Main module to extend
 - `data/notebooks/mobile_get_input_phase1.ipynb` - Configuration consolidated
 - `data/notebooks/mobile_get_input_phase2.ipynb` - Modularized version
 - `config_sentinel_hub.py` - Sentinel Hub credentials

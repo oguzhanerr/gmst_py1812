@@ -10,7 +10,7 @@
 - **Python module (before)** created 36 profiles (one per azimuth with all distances)
 
 ### Solution Applied
-Updated `src/mst_gis/pipeline/formatting.py` to:
+Updated `src/gmst_py1812/pipeline/formatting.py` to:
 1. Get distance rings: `distance_rings = sorted(set([round(d) for d in gdf['distance_km'].dropna().unique() if d > 0]))`
 2. Loop per ring per azimuth (like notebook):
 ```python
@@ -46,14 +46,14 @@ From phase4_formatting_export.ipynb:
 
 ## Files Modified
 
-1. **src/mst_gis/pipeline/formatting.py**
+1. **src/gmst_py1812/pipeline/formatting.py**
    - Updated `ProfileFormatter.format_profiles()` method
    - Changed from "one profile per azimuth" to "one profile per (azimuth, distance_ring) pair"
    - Added `distance_ring` column to output
 
 2. **Notebooks/scripts updated with smart filename**
    - `notebooks/phase4_formatting_export.ipynb` - Already has smart filename
-   - `src/mst_gis/pipeline/formatting.py` - Now generates smart filename too
+   - `src/gmst_py1812/pipeline/formatting.py` - Now generates smart filename too
    - `scripts/test_formatting_module.py` - Validates Python module
    - `scripts/verify_notebook_python_match.py` - Compares notebook vs Python
 

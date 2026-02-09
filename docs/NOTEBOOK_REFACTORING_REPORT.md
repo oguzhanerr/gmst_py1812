@@ -58,7 +58,7 @@ Extract profile extraction functions into a reusable, testable module for long-t
 
 ### New Module Created
 
-**File**: `src/mst_gis/propagation/profile_extraction.py` (340 lines)
+**File**: `src/gmst_py1812/propagation/profile_extraction.py` (340 lines)
 
 **Functions Extracted**:
 1. `meters_to_deg()` - Convert meters to lat/lon degrees
@@ -79,7 +79,7 @@ Extract profile extraction functions into a reusable, testable module for long-t
 **File**: `/data/notebooks/mobile_get_input_phase2.ipynb`
 
 **Changes**:
-- Imports from `mst_gis.propagation.profile_extraction`
+- Imports from `gmst_py1812.propagation.profile_extraction`
 - Removed 7 large monolithic functions
 - Notebook simplified to 9 cells
 - Much cleaner, easier to read
@@ -136,7 +136,7 @@ Extract profile extraction functions into a reusable, testable module for long-t
 2. `mobile_get_input_phase2.ipynb` - Modular version
 
 ### New Modules
-1. `src/mst_gis/propagation/profile_extraction.py` - Profile extraction library
+1. `src/gmst_py1812/propagation/profile_extraction.py` - Profile extraction library
 
 ### Documentation
 1. `NOTEBOOK_CLEANUP_SUGGESTIONS.md` - Original analysis (already created)
@@ -205,7 +205,7 @@ Extract profile extraction functions into a reusable, testable module for long-t
 
 ### Using profile_extraction Module
 ```python
-from mst_gis.propagation.profile_extraction import generate_profile_points
+from gmst_py1812.propagation.profile_extraction import generate_profile_points
 
 gdf = generate_profile_points(
     tx_lon, tx_lat,

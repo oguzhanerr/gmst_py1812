@@ -5,8 +5,8 @@
 ## Directory Layout
 
 ```
-mst_gis/
-├── src/mst_gis/                Production Python modules
+gmst_py1812/
+├── src/gmst_py1812/                Production Python modules
 │   ├── utils/
 │   │   ├── logging.py          Progress tracking & logging
 │   │   ├── validation.py       Data validation utilities
@@ -62,7 +62,7 @@ mst_gis/
 
 ## Why This Structure?
 
-### src/mst_gis/
+### src/gmst_py1812/
 - Standard Python package location
 - Contains production-ready code
 - All modules are importable

@@ -36,7 +36,7 @@ nothing to commit, working tree clean
 │   ├── run_full_pipeline.py   # Full pipeline
 │   ├── run_phase0_setup.py    # Phase 0
 │   └── run_phase1_dataprep.py # Phase 1
-├── src/mst_gis/               # Production code
+├── src/gmst_py1812/               # Production code
 │   ├── utils/                 # Shared utilities
 │   │   ├── logging.py
 │   │   └── validation.py

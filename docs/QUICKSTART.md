@@ -4,7 +4,7 @@
 
 ```bash
 # Clone repository
-cd /Users/oz/Documents/mst_gis
+cd /Users/oz/Documents/gmst_py1812
 
 # Create virtual environment
 python -m venv .venv

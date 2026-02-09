@@ -10,7 +10,7 @@
 Phase 0 output is CORRECT:
 ```
 ✓ SRTM data handler initialized (0.01s)
-  Cache location: /Users/oz/Documents/mst_gis/data/intermediate/elevation_cache
+  Cache location: /Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache
   Note: Tiles download on first elevation query (Phase 3)
 ```
 
@@ -69,7 +69,7 @@ $ jupyter notebook notebooks/phase0_setup.ipynb
   ↓
   Initializing SRTM elevation data...
   ✓ SRTM data handler initialized (0.01s)
-  Cache location: /Users/oz/Documents/mst_gis/data/intermediate/elevation_cache
+  Cache location: /Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache
   Note: Tiles download on first elevation query (Phase 3)
   
   STATUS: Handler ready, NO tiles yet ✓
@@ -109,7 +109,7 @@ $ jupyter notebook notebooks/phase3_batch_extraction.ipynb
     Height extracted from tile
   
   STATUS: SRTM tile downloaded ✓
-  Cache: /Users/oz/Documents/mst_gis/data/intermediate/elevation_cache/N09W014.hgt (2.8MB)
+  Cache: /Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache/N09W014.hgt (2.8MB)
 ```
 
 ### Phase 4 (Post-processing)
@@ -137,9 +137,9 @@ $ jupyter notebook notebooks/phase5_propagation.ipynb
 
 **Option 2: Direct Test**
 ```python
-from mst_gis.propagation.profile_extraction import set_srtm_cache_dir, _get_srtm_data
+from gmst_py1812.propagation.profile_extraction import set_srtm_cache_dir, _get_srtm_data
 
-set_srtm_cache_dir('/Users/oz/Documents/mst_gis/data/intermediate/elevation_cache')
+set_srtm_cache_dir('/Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache')
 srtm_data = _get_srtm_data()
 
 # This triggers download:
@@ -156,7 +156,7 @@ A: By design. Phase 0 just initializes the handler. Tiles download on first quer
 A: First elevation query downloads tile (~30-45s). Subsequent queries use cache (<1ms each).
 
 **Q: Where's my tile?**
-A: Check: `ls -lh /Users/oz/Documents/mst_gis/data/intermediate/elevation_cache/`
+A: Check: `ls -lh /Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache/`
 
 **Q: Can I download tiles manually?**
 A: Not necessary. Just run Phase 3 - it triggers download automatically.
@@ -165,7 +165,7 @@ A: Not necessary. Just run Phase 3 - it triggers download automatically.
 A: Phase 3 will show error. Check internet, then re-run Phase 3.
 
 **Q: How do I clear cache?**
-A: `rm /Users/oz/Documents/mst_gis/data/intermediate/elevation_cache/*.hgt`
+A: `rm /Users/oz/Documents/gmst_py1812/data/intermediate/elevation_cache/*.hgt`
 
 ## Comparison: Old vs New
 

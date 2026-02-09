@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="mst_gis",
+    name="gmst_py1812",
     version="0.1.0",
     package_dir={"": "src"},
     packages=find_packages(where="src"),

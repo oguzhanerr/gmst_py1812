@@ -197,7 +197,7 @@ python scripts/run_full_pipeline.py --help
 
 ### Python API
 ```python
-from mst_gis.pipeline.orchestration import run_pipeline
+from gmst_py1812.pipeline.orchestration import run_pipeline
 
 result = run_pipeline(config_path='config.json')
 print(result['csv_path'])
@@ -206,8 +206,8 @@ print(result['csv_path'])
 ### Module Testing
 ```bash
 # Verify compilation
-python -m py_compile src/mst_gis/pipeline/*.py
+python -m py_compile src/gmst_py1812/pipeline/*.py
 
 # Import test
-python -c "from mst_gis.pipeline.orchestration import run_pipeline; print('✅ OK')"
+python -c "from gmst_py1812.pipeline.orchestration import run_pipeline; print('✅ OK')"
 ```

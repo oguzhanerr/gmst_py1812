@@ -23,7 +23,7 @@ Replaced the `elevation` library with SRTM.py, which is a more robust parser for
 
 ## Implementation Changes
 
-### 1. Modified `src/mst_gis/propagation/profile_extraction.py`
+### 1. Modified `src/gmst_py1812/propagation/profile_extraction.py`
 
 **Key changes:**
 - Replaced `import elevation` with `import srtm`
