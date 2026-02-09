@@ -6,35 +6,54 @@ from pathlib import Path
 import numpy as np
 
 
-def load_profiles(profiles_dir):
+def load_profiles(profiles_dir, return_path=False):
     """Load all CSV profile files from a directory.
     
     Parameters:
     -----------
     profiles_dir : Path or str
         Directory containing profile CSV files
+    return_path : bool, optional
+        If True, return tuple (profiles, path_to_csv)
+        If False, return just profiles list
         
     Returns:
     --------
-    list
-        List of parsed profile rows
+    list or tuple
+        If return_path=False: list of parsed profile rows
+        If return_path=True: (list of profiles, Path to CSV file)
     """
     folder = Path(profiles_dir)
     profiles = []
-    for file in folder.glob("*.csv"):
-        with file.open(newline="", encoding="utf-8") as f:
-            profiles += list(csv.reader(f, delimiter=";"))[1:]
+    csv_path = None
     
+    # Load only the most recent CSV file (or all if return_path=False for backward compatibility)
+    csv_files = sorted(folder.glob("*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+    
+    if csv_files:
+        # Always use the most recent file
+        latest_file = csv_files[0]
+        with latest_file.open(newline="", encoding="utf-8") as f:
+            profiles = list(csv.reader(f, delimiter=";"))[1:]
+        csv_path = latest_file
+    
+    if return_path:
+        return profiles, csv_path
     return profiles
 
 
-def process_loss_parameters(profile):
+def process_loss_parameters(profile, tx_id_default=None):
     """Process and convert profile row to P1812 function parameters.
     
     Parameters:
     -----------
     profile : list
-        Raw profile row from CSV
+        Raw profile row from CSV:
+        Columns 0-14: f, p, d, h, R, Ct, zone, htg, hrg, pol, phi_t, phi_r, lam_t, lam_r, azimuth (P1812 input)
+        Column 15: distance_ring (metadata for output)
+        Column 16: tx_id (optional metadata, not used by P1812)
+    tx_id_default : str, optional
+        Default TX ID to use if not found in CSV column 16.
         
     Returns:
     --------
@@ -44,13 +63,15 @@ def process_loss_parameters(profile):
     """
     parameters = [ast.literal_eval(parameter) for parameter in profile[0:15]]
     
-    # Extract tx_id if present (column 16 in CSV, index 15)
-    tx_id = None
-    if len(profile) > 15:
+    # Extract tx_id from column 16 (0-indexed) if present
+    tx_id = tx_id_default
+    if len(profile) > 16:
         try:
-            tx_id = profile[15]
-        except (IndexError, ValueError):
-            tx_id = None
+            tx_id_value = profile[16].strip() if isinstance(profile[16], str) else str(profile[16])
+            if tx_id_value and tx_id_value != 'None':
+                tx_id = tx_id_value
+        except (IndexError, ValueError, AttributeError):
+            pass
     
     params_list = [
         float(parameters[0]),   # f (frequency)

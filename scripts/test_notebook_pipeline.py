@@ -138,7 +138,7 @@ def test_csv_output():
     print("="*60)
     
     profiles_dir = project_root / 'data/input/profiles'
-    csv_files = list(profiles_dir.glob('paths_oneTx_manyRx_*.csv'))
+    csv_files = list(profiles_dir.glob('profiles_*.csv'))
     
     if not csv_files:
         print(f"  ⚠ No CSV files found in {profiles_dir}")
@@ -146,6 +146,7 @@ def test_csv_output():
     
     latest_csv = max(csv_files, key=lambda p: p.stat().st_mtime)
     print(f"  ✓ Found CSV: {latest_csv.name}")
+    print(f"    (Filename format: profiles_{{TX_ID}}_{{PROFILES}}p_{{AZIMUTHS}}az_{{DISTANCE}}km_v{{TIMESTAMP}}_{{HASH}}.csv)")
     
     try:
         df = pd.read_csv(latest_csv, sep=';')

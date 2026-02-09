@@ -30,6 +30,13 @@ from mst_gis.pipeline.formatting import format_and_export_profiles
 from mst_gis.utils.logging import Timer, ProgressTracker, print_success, print_warning
 from mst_gis.utils.validation import ValidationError
 
+# Import elevation functions for Phase 0 initialization
+try:
+    from mst_gis.propagation.profile_extraction import set_srtm_cache_dir, _get_srtm_data
+    HAS_SRTM = True
+except ImportError:
+    HAS_SRTM = False
+
 
 class PipelineOrchestrator:
     """Orchestrate execution of all pipeline phases."""
@@ -100,6 +107,7 @@ class PipelineOrchestrator:
                 'workflow_dir': project_root / 'data' / 'intermediate' / 'workflow',
                 'profiles_dir': project_root / 'data' / 'input' / 'profiles',
                 'reference_dir': project_root / 'data' / 'input' / 'reference',
+                'elevation_cache_dir': project_root / 'data' / 'intermediate' / 'elevation_cache',
             }
             
             for key, path in paths.items():
@@ -108,6 +116,21 @@ class PipelineOrchestrator:
         
         print_success("Setup complete")
         print(f"  Project root: {paths['project_root']}")
+        
+        # Initialize SRTM elevation data (Phase 0 optimization)
+        if HAS_SRTM:
+            try:
+                with Timer("Initialize SRTM elevation data"):
+                    # Set cache directory to project elevation cache
+                    set_srtm_cache_dir(str(paths['elevation_cache_dir']))
+                    # Pre-initialize SRTM data handler (downloads tile on first use)
+                    srtm_data = _get_srtm_data()
+                    # Pre-download tile by querying transmitter location
+                    tx_config = self.config['TRANSMITTER']
+                    tx_elev = srtm_data.get_elevation(tx_config['latitude'], tx_config['longitude'])
+                    print_success(f"SRTM elevation data cached (TX elevation: {tx_elev}m)")
+            except Exception as e:
+                print_warning(f"SRTM initialization failed: {str(e)[:100]}")
         
         self.phase0_paths = paths
         self.state['phase0_complete'] = True
@@ -197,12 +220,15 @@ class PipelineOrchestrator:
             hrg=tx_config['antenna_height_rx'],
         )
         
+        # Calculate number of azimuths from azimuth_step
+        num_azimuths = int(360 / rx_config['azimuth_step'])
+        
         with Timer("Generate receiver grid"):
             receivers_gdf = generate_receiver_grid(
                 tx=transmitter,
                 max_distance_km=rx_config['max_distance_km'],
-                distance_step_km=rx_config['distance_step_km'],
-                num_azimuths=rx_config['num_azimuths'],
+                distance_step_km=rx_config['distance_step'],
+                num_azimuths=num_azimuths,
                 include_tx_point=True,
             )
         
@@ -288,8 +314,18 @@ class PipelineOrchestrator:
         print("=" * 60)
         
         if not output_path:
+            # Auto-generate filename with metadata
+            from datetime import datetime
+            import hashlib
+            import pandas as pd
+            
             max_dist = self.config['RECEIVER_GENERATION']['max_distance_km']
-            output_path = self.phase0_paths['profiles_dir'] / f"paths_oneTx_manyRx_{max_dist}km.csv"
+            tx_id = self.config['TRANSMITTER'].get('id', 'TX0')
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            
+            # Will be set by format_and_export_profiles with proper metadata
+            # This is just a placeholder - the actual function will generate the full filename
+            output_path = self.phase0_paths['profiles_dir'] / f"profiles_{tx_id}_{max_dist}km.csv"
         
         df_profiles, csv_path = format_and_export_profiles(
             receivers_gdf=self.phase3_enriched_gdf,

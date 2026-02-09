@@ -24,13 +24,61 @@ class ConfigError(Exception):
 # Load default configuration from config_example.json (single source of truth)
 # This is loaded as a fallback if no config file is provided
 def _load_default_config() -> Dict[str, Any]:
-    """Load default configuration from config_example.json."""
+    """Load default configuration from config_example.json with Sentinel Hub credentials."""
+    # Look for config_example.json in parent directories (support both src/ layout and project root)
     config_path = Path(__file__).parent.parent.parent / 'config_example.json'
+    
+    # If not found, try from current working directory
+    if not config_path.exists():
+        config_path = Path.cwd() / 'config_example.json'
+    
     if config_path.exists():
         with open(config_path) as f:
-            return json.load(f)
+            config = json.load(f)
+        
+        # Load Sentinel Hub credentials from config_sentinel_hub.py if available
+        config = _load_sentinel_hub_credentials(config)
+        return config
     # Fallback if config_example.json not found (should not happen)
     raise ConfigError(f"Default config file not found: {config_path}")
+
+
+def _load_sentinel_hub_credentials(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Load Sentinel Hub credentials from config_sentinel_hub.py if available."""
+    try:
+        # Try to import credentials from config_sentinel_hub.py
+        import sys
+        project_root = Path(__file__).parent.parent.parent
+        if str(project_root) not in sys.path:
+            sys.path.insert(0, str(project_root))
+        
+        from config_sentinel_hub import (
+            SH_CLIENT_ID,
+            SH_CLIENT_SECRET,
+            TOKEN_URL,
+            PROCESS_URL,
+            COLLECTION_ID,
+        )
+        
+        # Update SENTINEL_HUB config with loaded credentials
+        if 'SENTINEL_HUB' not in config:
+            config['SENTINEL_HUB'] = {}
+        
+        # Override empty values with credentials from config file
+        config['SENTINEL_HUB']['client_id'] = SH_CLIENT_ID or config['SENTINEL_HUB'].get('client_id', '')
+        config['SENTINEL_HUB']['client_secret'] = SH_CLIENT_SECRET or config['SENTINEL_HUB'].get('client_secret', '')
+        config['SENTINEL_HUB']['token_url'] = TOKEN_URL or config['SENTINEL_HUB'].get('token_url', '')
+        config['SENTINEL_HUB']['process_url'] = PROCESS_URL or config['SENTINEL_HUB'].get('process_url', '')
+        config['SENTINEL_HUB']['collection_id'] = COLLECTION_ID or config['SENTINEL_HUB'].get('collection_id', '')
+    except ImportError:
+        # config_sentinel_hub.py not available, use values from JSON config
+        pass
+    except Exception as e:
+        # Log warning but don't fail
+        import warnings
+        warnings.warn(f"Failed to load Sentinel Hub credentials from config_sentinel_hub.py: {e}")
+    
+    return config
 
 DEFAULT_CONFIG: Dict[str, Any] = _load_default_config()
 

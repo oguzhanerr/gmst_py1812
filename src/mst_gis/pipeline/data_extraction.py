@@ -68,7 +68,7 @@ class RasterPreloader:
     
     def load_dem(self, dem_path: Path) -> bool:
         """
-        Load DEM from VRT or GeoTIFF.
+        Load DEM from VRT or GeoTIFF, with SRTM.py fallback.
         
         Args:
             dem_path: Path to DEM VRT or GeoTIFF
@@ -78,7 +78,8 @@ class RasterPreloader:
         """
         if not dem_path.exists():
             print_warning(f"DEM not found at {dem_path}")
-            return False
+            # Try SRTM.py fallback
+            return self._load_dem_srtm()
         
         try:
             with Timer("Load DEM"):
@@ -90,6 +91,24 @@ class RasterPreloader:
             return True
         except Exception as e:
             print_error(f"Error loading DEM: {e}")
+            # Try SRTM.py fallback
+            return self._load_dem_srtm()
+    
+    def _load_dem_srtm(self) -> bool:
+        """
+        Fallback: Load DEM using SRTM.py (on-demand elevation extraction).
+        
+        Returns:
+            True if SRTM available, False otherwise
+        """
+        try:
+            print_warning("Attempting SRTM.py fallback for elevation extraction")
+            # SRTM.py is lazy-loaded on first get_elevation() call
+            # This indicates SRTM will be used for elevation extraction
+            self.dem_array = None  # Signal to use SRTM in extract_elevation_batch
+            return True
+        except Exception as e:
+            print_warning(f"SRTM fallback also failed: {e}")
             return False
     
     def load_zones_geojson(self, zones_path: Path) -> gpd.GeoDataFrame:
@@ -152,6 +171,8 @@ class RasterPreloader:
         """
         Extract elevation values for all points.
         
+        Uses pre-loaded DEM array if available, falls back to SRTM.py.
+        
         Args:
             gdf: GeoDataFrame with point geometries
             
@@ -159,7 +180,8 @@ class RasterPreloader:
             Array of elevation values
         """
         if self.dem_array is None:
-            return np.zeros(len(gdf), dtype=np.float32)
+            # Try SRTM.py fallback
+            return self._extract_elevation_srtm(gdf)
         
         elevation = np.zeros(len(gdf), dtype=np.float32)
         
@@ -175,6 +197,36 @@ class RasterPreloader:
                     elevation[idx] = z if z > -32000 else 0.0
         
         return elevation
+    
+    def _extract_elevation_srtm(self, gdf: gpd.GeoDataFrame) -> np.ndarray:
+        """
+        Extract elevation using SRTM.py library.
+        
+        Args:
+            gdf: GeoDataFrame with point geometries
+            
+        Returns:
+            Array of elevation values
+        """
+        try:
+            from mst_gis.propagation.profile_extraction import _get_srtm_data
+            elevation = np.zeros(len(gdf), dtype=np.float32)
+            
+            with Timer("Extract elevation (SRTM.py)"):
+                srtm_data = _get_srtm_data()
+                for idx, (_, row) in enumerate(gdf.iterrows()):
+                    try:
+                        geom = row.geometry
+                        # SRTM.py: get_elevation(lat, lon)
+                        elev = srtm_data.get_elevation(geom.y, geom.x)
+                        elevation[idx] = float(elev) if elev is not None and elev > -32000 else 0.0
+                    except Exception:
+                        elevation[idx] = 0.0
+            
+            return elevation
+        except ImportError:
+            print_warning("SRTM.py not available")
+            return np.zeros(len(gdf), dtype=np.float32)
 
 
 def extract_zones_vectorized(
@@ -263,13 +315,19 @@ def map_landcover_codes(
     Args:
         landcover_codes: Array of LCM10 codes (0-254)
         lcm10_to_ct: Mapping from LCM10 code to category (1-5)
+                     (keys can be int or str, will be converted to int)
         ct_to_r: Mapping from category to resistance (ohms)
+                 (keys can be int or str, will be converted to int)
         
     Returns:
         Tuple of (categories, resistance) arrays
     """
-    categories = np.array([lcm10_to_ct.get(int(code), 2) for code in landcover_codes], dtype=np.int32)
-    resistance = np.array([ct_to_r.get(int(ct), 0) for ct in categories], dtype=np.float32)
+    # Convert string keys to integers if needed (JSON config has string keys)
+    lcm10_to_ct_int = {int(k): v for k, v in lcm10_to_ct.items()}
+    ct_to_r_int = {int(k): v for k, v in ct_to_r.items()}
+    
+    categories = np.array([lcm10_to_ct_int.get(int(code), 2) for code in landcover_codes], dtype=np.int32)
+    resistance = np.array([ct_to_r_int.get(int(ct), 0) for ct in categories], dtype=np.float32)
     
     return categories, resistance
 

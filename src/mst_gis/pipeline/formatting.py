@@ -9,6 +9,8 @@ Handles:
 
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
+from datetime import datetime
+import hashlib
 
 import geopandas as gpd
 import pandas as pd
@@ -30,6 +32,26 @@ class ProfileFormatter:
         """
         self.receivers_gdf = receivers_gdf
         self.profiles = []
+        self._tx_id = None  # Cache TX ID
+    
+    def _extract_tx_id(self):
+        """
+        Extract TX ID from GeoDataFrame.
+        
+        Returns:
+            str: TX ID from first row, or 'UNKNOWN_TX' if not available
+        """
+        if self._tx_id is not None:
+            return self._tx_id
+        
+        if 'tx_id' in self.receivers_gdf.columns and len(self.receivers_gdf) > 0:
+            tx_id = self.receivers_gdf['tx_id'].iloc[0]
+            if pd.notna(tx_id):
+                self._tx_id = str(tx_id)
+                return self._tx_id
+        
+        self._tx_id = 'UNKNOWN_TX'
+        return self._tx_id
     
     def format_profiles(
         self,
@@ -40,10 +62,14 @@ class ProfileFormatter:
         hrg: float,
     ) -> List[Dict[str, Any]]:
         """
-        Format receiver points into profiles grouped by azimuth.
+        Format receiver points into profiles per distance ring per azimuth.
         
-        Creates one profile per azimuth, with all distance points along that
-        azimuth forming a single profile for P.1812-6 processing.
+        Creates one profile per (azimuth, distance_ring) pair. Each profile
+        extends from 0 km (TX) to the specified ring distance, containing all
+        points along that azimuth up to that distance.
+        
+        This matches the notebook approach: for each distance ring, for each azimuth,
+        create a profile with all points from 0 to that ring endpoint.
         
         Args:
             frequency_ghz: Frequency in GHz (0.03-6)
@@ -76,56 +102,62 @@ class ProfileFormatter:
         
         profiles = []
         
-        # Get unique azimuths (excluding NaN for transmitter point)
+        # Get distance rings and azimuths
+        distance_rings = sorted(set([round(d) for d in self.receivers_gdf['distance_km'].dropna().unique() if d > 0]))
         azimuths = sorted(self.receivers_gdf['azimuth_deg'].dropna().unique())
         
-        for azimuth in azimuths:
-            # Get all points for this azimuth, sorted by distance
-            subset = self.receivers_gdf[
-                self.receivers_gdf['azimuth_deg'] == azimuth
-            ].sort_values('distance_km')
-            
-            if len(subset) == 0:
-                continue
-            
-            # Extract arrays for this profile
-            distances = subset['distance_km'].tolist()
-            heights = [int(round(h)) if not pd.isna(h) else 0 for h in subset['h'].tolist()]
-            r_values = subset['R'].tolist()
-            ct_values = subset['Ct'].tolist()
-            zones = subset['zone'].tolist()
-            
-            # P.1812 requires distance to start at 0 (transmitter point)
-            # Prepend TX point with properties from first receiver point
-            distances = [0] + distances
-            heights = [heights[0]] + heights  # TX height same as first RX
-            r_values = [r_values[0]] + r_values  # TX resistance same as first point
-            ct_values = [ct_values[0]] + ct_values  # TX land cover same as first point
-            zones = [zones[0]] + zones  # TX zone same as first point
-            
-            # Get TX/RX coordinates (first and last points on the profile)
-            geom_0 = subset.geometry.iloc[0]
-            geom_last = subset.geometry.iloc[-1]
-            
-            profile = {
-                'f': frequency_ghz,
-                'p': time_percentage,
-                'd': distances,
-                'h': heights,
-                'R': r_values,
-                'Ct': ct_values,
-                'zone': zones,
-                'htg': htg,
-                'hrg': hrg,
-                'pol': polarization,
-                'phi_t': float(geom_0.y),
-                'phi_r': float(geom_last.y),
-                'lam_t': float(geom_0.x),
-                'lam_r': float(geom_last.x),
-                'azimuth': float(azimuth),
-            }
-            
-            profiles.append(profile)
+        # Create one profile per (distance_ring, azimuth) pair
+        for ring_km in distance_rings:
+            for azimuth in azimuths:
+                # Get all points for this azimuth up to this distance ring
+                subset = self.receivers_gdf[
+                    (self.receivers_gdf['azimuth_deg'] == azimuth) & 
+                    (self.receivers_gdf['distance_km'] <= ring_km + 0.05)
+                ].sort_values('distance_km')
+                
+                if len(subset) == 0:
+                    continue
+                
+                # Extract arrays for this profile
+                distances = subset['distance_km'].tolist()
+                heights = [int(round(h)) if not pd.isna(h) else 0 for h in subset['h'].tolist()]
+                r_values = subset['R'].tolist()
+                ct_values = subset['Ct'].tolist()
+                zones = subset['zone'].tolist()
+                
+                # P.1812 requires distance to start at 0 (transmitter point)
+                # Prepend TX point with properties from first receiver point
+                distances = [0] + distances
+                heights = [heights[0]] + heights  # TX height same as first RX
+                r_values = [r_values[0]] + r_values  # TX resistance same as first point
+                ct_values = [ct_values[0]] + ct_values  # TX land cover same as first point
+                zones = [zones[0]] + zones  # TX zone same as first point
+                
+                # Get TX/RX coordinates (first and last points on the profile)
+                geom_0 = subset.geometry.iloc[0]
+                geom_last = subset.geometry.iloc[-1]
+                
+                profile = {
+                    'f': frequency_ghz,
+                    'p': time_percentage,
+                    'd': distances,
+                    'h': heights,
+                    'R': r_values,
+                    'Ct': ct_values,
+                    'zone': zones,
+                    'htg': htg,
+                    'hrg': hrg,
+                    'pol': polarization,
+                    'phi_t': float(geom_0.y),
+                    'phi_r': float(geom_last.y),
+                    'lam_t': float(geom_0.x),
+                    'lam_r': float(geom_last.x),
+                    'azimuth': float(azimuth),
+                    'distance_ring': float(ring_km),
+                    'tx_id': self._extract_tx_id(),  # Column 17: TX ID (not used by P1812)
+                }
+                
+                profiles.append(profile)
         
         self.profiles = profiles
         return profiles
@@ -144,10 +176,10 @@ class ProfileFormatter:
     
     def export_csv(self, output_path: Path) -> Path:
         """
-        Export profiles to semicolon-delimited CSV.
+        Export profiles to semicolon-delimited CSV with smart filename.
         
         Args:
-            output_path: Path to output CSV file
+            output_path: Base path for output CSV file (filename will be auto-generated)
             
         Returns:
             Path to saved file
@@ -160,14 +192,39 @@ class ProfileFormatter:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
-        df.to_csv(
-            output_path,
-            sep=';',
-            index=False,
-            decimal='.',
-        )
+        # Export to CSV to get content hash
+        csv_content = df.to_csv(sep=';', index=False, decimal='.')
+        content_hash = hashlib.md5(csv_content.encode()).hexdigest()[:8]
         
-        return output_path
+        # Generate smart filename with metadata
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        num_profiles = len(df)
+        num_azimuths = len(df['azimuth'].unique()) if 'azimuth' in df.columns else 0
+        
+        # Extract max distance from distance arrays
+        max_distance_km = 0
+        if 'd' in df.columns:
+            for distances in df['d']:
+                if isinstance(distances, list):
+                    max_distance_km = max(max_distance_km, max(distances) if distances else 0)
+        max_distance_km = int(round(max_distance_km))
+        
+        # Extract TX ID from parent config if available, otherwise default
+        tx_id = 'TX0'
+        if hasattr(self, 'receivers_gdf') and 'tx_id' in self.receivers_gdf.columns:
+            tx_id_val = self.receivers_gdf['tx_id'].iloc[0]
+            if pd.notna(tx_id_val):
+                tx_id = str(tx_id_val)
+        
+        # Format: profiles_{tx_id}_{num_profiles}p_{num_azimuths}az_{max_dist}km_v{timestamp}_{hash}.csv
+        filename = f"profiles_{tx_id}_{num_profiles}p_{num_azimuths}az_{max_distance_km}km_v{timestamp}_{content_hash}.csv"
+        final_path = output_path.parent / filename
+        
+        # Write the CSV
+        with open(final_path, 'w') as f:
+            f.write(csv_content)
+        
+        return final_path
 
 
 def format_and_export_profiles(
@@ -231,10 +288,18 @@ def format_and_export_profiles(
     
     if verbose:
         file_size = output_path.stat().st_size / 1024
+        df_profiles = formatter.to_dataframe()
+        num_azimuths = len(df_profiles['azimuth'].unique()) if 'azimuth' in df_profiles.columns else 0
+        
+        print(f"\n📊 Profile Metadata:")
+        print(f"  Total profiles: {len(profiles)}")
+        print(f"  Azimuths: {num_azimuths}")
+        print(f"  File size: {file_size:.1f} KB")
+        print(f"  Filename: {output_path.name}")
+        print(f"\n📝 Filename format: profiles_{{TX_ID}}_{{PROFILES}}p_{{AZIMUTHS}}az_{{DISTANCE}}km_v{{TIMESTAMP}}_{{HASH}}.csv")
         print(f"\nExporting profiles to CSV...")
         print(f"✓ Saved {len(profiles)} profiles to {output_path}")
-        print(f"\nFile size: {file_size:.1f} KB")
-        print(f"Columns: {list(formatter.to_dataframe().columns)}")
+        print(f"Columns: {list(df_profiles.columns)}")
         
         # Show sample profile
         df_profiles = formatter.to_dataframe()

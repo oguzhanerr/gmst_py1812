@@ -18,6 +18,11 @@
     "sampling_resolution": 30
   },
   "SENTINEL_HUB": {
+    "client_id": "",
+    "client_secret": "",
+    "token_url": "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token",
+    "process_url": "https://sh.dataspace.copernicus.eu/api/v1/process",
+    "collection_id": "",
     "buffer_m": 11000,
     "chip_px": 734,
     "year": 2020
